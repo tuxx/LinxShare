@@ -38,7 +38,7 @@ jobs:
         run: |
           mkdir -p app
           echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > app/linxshare-release.keystore
-          cat > keystore.properties <<'EOF'
+          cat > keystore.properties <<EOF
           storeFile=linxshare-release.keystore
           storePassword=${ANDROID_KEYSTORE_PASSWORD}
           keyAlias=${ANDROID_KEY_ALIAS}

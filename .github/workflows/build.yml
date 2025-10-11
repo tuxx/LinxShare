@@ -7,6 +7,12 @@ on:
 jobs:
   build-release:
     runs-on: ubuntu-latest
+    env:
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -21,16 +27,14 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Prepare signing files (if provided)
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
           echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > linxshare-release.keystore
           cat > keystore.properties <<'EOF'
           storeFile=linxshare-release.keystore
-          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
-          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
-          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          storePassword=${ANDROID_KEYSTORE_PASSWORD}
+          keyAlias=${ANDROID_KEY_ALIAS}
+          keyPassword=${ANDROID_KEY_PASSWORD}
           EOF
 
       - name: Build unsigned APK and signed AAB
@@ -52,8 +56,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload signed APK (optional)
-        env:
-          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         uses: softprops/action-gh-release@v2
         with:
@@ -64,8 +66,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Publish to Google Play (production)
-        env:
-          PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
         if: ${{ env.PLAY_SERVICE_ACCOUNT_JSON != '' }}
         uses: r0adkll/upload-google-play@v1
         with:

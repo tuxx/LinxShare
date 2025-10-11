@@ -1,0 +1,3 @@
+- Allows basic auth using urls: https://user:password@linx-server.example
+- Multiple file uploads now possible
+- Updated code to fit new google requirements for releasing on the Google Play Store

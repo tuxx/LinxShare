@@ -2,7 +2,6 @@ plugins {
 	id 'com.android.application'
 	id 'org.jetbrains.kotlin.android'
 	id 'org.jetbrains.kotlin.plugin.serialization'
-    id 'com.github.triplet.play'
 }
 
 def keystoreProperties = new Properties()
@@ -65,10 +64,13 @@ android {
 	}
 }
 
-play {
-    serviceAccountCredentials.set(file('play-service-account.json'))
-    track.set('internal')
-    defaultToAppBundles.set(true)
+if (project.hasProperty('PUBLISH_PLAY')) {
+    apply plugin: 'com.github.triplet.play'
+    play {
+        serviceAccountCredentials.set(file('play-service-account.json'))
+        track.set('internal')
+        defaultToAppBundles.set(true)
+    }
 }
 
 dependencies {

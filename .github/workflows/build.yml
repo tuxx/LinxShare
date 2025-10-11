@@ -36,7 +36,8 @@ jobs:
       - name: Prepare signing files (if provided)
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         run: |
-          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > linxshare-release.keystore
+          mkdir -p app
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 -d > app/linxshare-release.keystore
           cat > keystore.properties <<'EOF'
           storeFile=linxshare-release.keystore
           storePassword=${ANDROID_KEYSTORE_PASSWORD}

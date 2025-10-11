@@ -29,4 +29,16 @@
                 app:title="@string/randomize_filename"
                 app:key="randomize_filename"/>
     </PreferenceCategory>
+
+    <PreferenceCategory
+            app:title="@string/notification_settings">
+        <SwitchPreferenceCompat
+                app:defaultValue="false"
+                app:title="@string/notif_single"
+                app:key="notif_single_enable"/>
+        <SwitchPreferenceCompat
+                app:defaultValue="true"
+                app:title="@string/notif_multi"
+                app:key="notif_multi_enable"/>
+    </PreferenceCategory>
 </androidx.preference.PreferenceScreen>

@@ -2,6 +2,9 @@
     <string name="app_name">LinxShare</string>
     <string name="server_settings">Server settings</string>
     <string name="default_upload_settings">Default upload settings</string>
+    <string name="notification_settings">Notifications</string>
+    <string name="notif_single">Single file upload</string>
+    <string name="notif_multi">Multiple file uploads</string>
     <string name="upload_settings">Upload settings</string>
     <string name="linx_url">Linx URL</string>
     <string name="api_key">API key</string>

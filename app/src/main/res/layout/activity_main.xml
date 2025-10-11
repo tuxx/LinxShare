@@ -10,5 +10,5 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/settings_container"
-                android:name="org.thegraveyard.linxshare.SettingsFragment"/>
+                android:name="com.kolktech.linxshare.SettingsFragment"/>
 </ScrollView>

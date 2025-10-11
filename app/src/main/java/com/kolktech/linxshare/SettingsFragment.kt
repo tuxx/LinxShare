@@ -1,4 +1,4 @@
-package org.thegraveyard.linxshare
+package com.kolktech.linxshare
 
 import android.os.Bundle
 import androidx.preference.EditTextPreference
@@ -13,7 +13,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         findPreference<Preference>("linx_url")?.summaryProvider = EditTextPreference.SimpleSummaryProvider.getInstance()
 
         findPreference<Preference>("api_key")?.setSummaryProvider {
-            if (preferenceManager.sharedPreferences.getString(it.key, "").isNullOrEmpty()) {
+            if (preferenceManager.sharedPreferences?.getString(it.key, "").isNullOrEmpty()) {
                 getString(R.string.no_api_key_set)
             } else {
                 getString(R.string.api_key_set)
@@ -21,7 +21,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
 
         findPreference<Preference>("delete_key")?.setSummaryProvider {
-            if (preferenceManager.sharedPreferences.getString(it.key, "").isNullOrEmpty()) {
+            if (preferenceManager.sharedPreferences?.getString(it.key, "").isNullOrEmpty()) {
                 getString(R.string.no_delete_key_set)
             } else {
                 getString(R.string.delete_key_set)
@@ -30,7 +30,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         findPreference<ListPreference>("expiration")?.let {
             it.setSummaryProvider { preference ->
-                val value = preferenceManager.sharedPreferences.getString(preference.key, "0")!!
+                val value = preferenceManager.sharedPreferences?.getString(preference.key, "0") ?: "0"
                 it.entries[it.findIndexOfValue(value)]
             }
         }

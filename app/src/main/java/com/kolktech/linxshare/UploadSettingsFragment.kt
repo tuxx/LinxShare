@@ -1,4 +1,4 @@
-package org.thegraveyard.linxshare
+package com.kolktech.linxshare
 
 import android.os.Bundle
 import androidx.preference.*
@@ -57,9 +57,9 @@ class UploadSettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.upload_preferences, rootKey)
 
         val sharedPreferences = preferenceManager.sharedPreferences
-        deleteKey = sharedPreferences.getString("delete_key", "") ?: ""
-        expiration = (sharedPreferences.getString("expiration", "0") ?: "0").toInt()
-        randomizeFilename = sharedPreferences.getBoolean("randomize_filename", true)
+        deleteKey = sharedPreferences?.getString("delete_key", "") ?: ""
+        expiration = (sharedPreferences?.getString("expiration", "0") ?: "0").toInt()
+        randomizeFilename = sharedPreferences?.getBoolean("randomize_filename", true) ?: true
 
         if (savedInstanceState != null) {
             deleteKey = savedInstanceState.getString("delete_key", deleteKey)

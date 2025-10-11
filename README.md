@@ -5,7 +5,7 @@ An Android client for [linx-server](https://github.com/andreimarcu/linx-server).
 License: <a href="https://nl.wikipedia.org/wiki/WTFPL">WTFPL</a>
 
 <p align="center">
-  <a href="https://play.google.com/store/apps/details?id=org.thegraveyard.linxshare">
+  <a href="https://play.google.com/store/apps/details?id=com.kolktech.linxshare">
     <img alt="Get it on Google Play" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"/>
   </a>
 </p>
@@ -19,6 +19,3 @@ License: <a href="https://nl.wikipedia.org/wiki/WTFPL">WTFPL</a>
 
 ## Upload a file screen
 <a href="https://imgur.com/OwNw02l.png"><img src="https://imgur.com/OwNw02l.png" height="250"></a>
-
-## Todo
-- [ ] Add profiles to support multiple linx-servers

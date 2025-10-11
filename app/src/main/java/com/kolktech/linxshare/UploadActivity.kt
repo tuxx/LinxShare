@@ -1,4 +1,4 @@
-package org.thegraveyard.linxshare
+package com.kolktech.linxshare
 
 import android.content.*
 import android.net.Uri
@@ -7,12 +7,12 @@ import android.os.Parcelable
 import android.util.Log
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
 import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.preference.PreferenceManager
-import kotlinx.android.synthetic.main.activity_upload.*
+import android.view.View
+import androidx.core.content.IntentCompat
 import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import okhttp3.*
@@ -32,11 +32,13 @@ class UploadActivity : AppCompatActivity() {
     private val json = Json { ignoreUnknownKeys = true }
 
     private lateinit var optionsMenu: Menu
+    private lateinit var progressOverlay: View
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setContentView(R.layout.activity_upload)
+        progressOverlay = findViewById(R.id.progress_overlay)
 
         val uploadSettingsFragment: UploadSettingsFragment = if (savedInstanceState == null) {
             val fragment = UploadSettingsFragment()
@@ -53,7 +55,7 @@ class UploadActivity : AppCompatActivity() {
             intent?.action == Intent.ACTION_SEND -> {
                 compatibleIntent = true
 
-                (intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let { uri ->
+                IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
                     uri.lastPathSegment?.let {
                         if (!it.contains('.')) {
                             val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(intent.type)
@@ -88,7 +90,7 @@ class UploadActivity : AppCompatActivity() {
             val randomizeFilename = uploadSettings.randomizeFilename
             val filename = uploadSettings.filename
 
-            progress_overlay.visibility = View.VISIBLE
+            progressOverlay.visibility = View.VISIBLE
 
             handleSendImage(
                 intent,
@@ -112,7 +114,7 @@ class UploadActivity : AppCompatActivity() {
         randomizeFilename: Boolean,
         filename: String
     ) {
-        (intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let { uri ->
+        IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
             thread(start = true) {
                 val body = object : RequestBody() {
                     override fun contentType(): MediaType? {
@@ -181,7 +183,7 @@ class UploadActivity : AppCompatActivity() {
         clipboard.setPrimaryClip(clip)
 
         runOnUiThread {
-            progress_overlay.visibility = View.GONE
+            progressOverlay.visibility = View.GONE
 
             val toast = Toast.makeText(applicationContext, "Copied $url to clipboard", Toast.LENGTH_SHORT)
             toast.show()
@@ -191,7 +193,7 @@ class UploadActivity : AppCompatActivity() {
 
     private fun handleFailure() {
         runOnUiThread {
-            progress_overlay.visibility = View.GONE
+            progressOverlay.visibility = View.GONE
 
             val toast = Toast.makeText(
                 applicationContext,

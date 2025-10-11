@@ -1,4 +1,4 @@
-package org.thegraveyard.linxshare
+package com.kolktech.linxshare
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity

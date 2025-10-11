@@ -1,43 +1,85 @@
-apply plugin: 'com.android.application'
+plugins {
+	id 'com.android.application'
+	id 'org.jetbrains.kotlin.android'
+	id 'org.jetbrains.kotlin.plugin.serialization'
+    id 'com.github.triplet.play'
+}
 
-apply plugin: 'kotlin-android'
-
-apply plugin: 'kotlin-android-extensions'
-
-apply plugin: 'kotlinx-serialization'
+def keystoreProperties = new Properties()
+def keystorePropertiesFile = rootProject.file('keystore.properties')
+def hasKeystore = keystorePropertiesFile.exists()
+if (hasKeystore) {
+    keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
+}
 
 android {
-    compileSdkVersion 29
-    buildToolsVersion "29.0.2"
-    defaultConfig {
-        applicationId "org.thegraveyard.linxshare"
-        minSdkVersion 23
-        targetSdkVersion 29
-        versionCode 3
-        versionName "1.2"
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-    }
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-    compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
-    }
+	namespace 'com.kolktech.linxshare'
+	compileSdk 35
+
+	defaultConfig {
+		applicationId "com.kolktech.linxshare"
+		minSdk 23
+		targetSdk 35
+		// Allow CI/local overrides via env or -P properties
+		def vcEnv = System.getenv('VERSION_CODE')
+		def vcProp = project.findProperty('versionCode')
+		def resolvedVc = (vcEnv ?: vcProp)
+		versionCode (resolvedVc != null ? resolvedVc.toString().toInteger() : 4)
+
+		def vnEnvRaw = System.getenv('VERSION_NAME')
+		def vnProp = project.findProperty('versionName')
+		def vn = (vnEnvRaw ?: vnProp ?: '1.2').toString()
+		// Trim leading 'v' from tag names like 'v1.2.3'
+		versionName (vn.startsWith('v') ? vn.substring(1) : vn)
+		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+	}
+
+	if (hasKeystore) {
+		signingConfigs {
+			release {
+				storeFile file(keystoreProperties['storeFile'])
+				storePassword keystoreProperties['storePassword']
+				keyAlias keystoreProperties['keyAlias']
+				keyPassword keystoreProperties['keyPassword']
+			}
+		}
+	}
+
+	buildTypes {
+		release {
+			minifyEnabled false
+			proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+			if (hasKeystore) {
+				signingConfig signingConfigs.release
+			}
+		}
+	}
+
+	compileOptions {
+		sourceCompatibility JavaVersion.VERSION_17
+		targetCompatibility JavaVersion.VERSION_17
+	}
+
+	kotlinOptions {
+		jvmTarget = '17'
+	}
+}
+
+play {
+    serviceAccountCredentials.set(file('play-service-account.json'))
+    track.set('internal')
+    defaultToAppBundles.set(true)
 }
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.core:core-ktx:1.3.2'
-    implementation 'androidx.preference:preference-ktx:1.1.1'
-    implementation 'com.squareup.okhttp3:okhttp:4.9.0'
-    implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.0.0'
-    testImplementation 'junit:junit:4.13.1'
-    androidTestImplementation 'androidx.test:runner:1.3.0'
-    androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+	implementation fileTree(dir: 'libs', include: ['*.jar'])
+	implementation 'androidx.appcompat:appcompat:1.7.0'
+	implementation 'androidx.core:core-ktx:1.13.1'
+	implementation 'androidx.preference:preference-ktx:1.2.1'
+	implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+	implementation 'org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3'
+	testImplementation 'junit:junit:4.13.2'
+	androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+	androidTestImplementation 'androidx.test:core:1.5.0'
+	androidTestImplementation 'androidx.test.espresso:espresso-core:3.6.1'
 }

@@ -15,6 +15,8 @@ import android.Manifest
 import android.content.pm.PackageManager
 import androidx.core.app.ActivityCompat
 import android.graphics.BitmapFactory
+import android.util.Base64
+import java.net.URI
 import android.view.Menu
 import android.view.MenuItem
 import android.webkit.MimeTypeMap
@@ -161,11 +163,12 @@ class UploadActivity : AppCompatActivity() {
                 }
 
                 val builder = Request.Builder()
-                    .url("${linxUrl.trimEnd('/')}/upload/")
+                    .url("${parseBaseUrlAndAuth(linxUrl).first.trimEnd('/')}/upload/")
                     .addHeader("Accept", "application/json")
                     .addHeader("Linx-Delete-Key", deleteKey)
                     .addHeader("Linx-Expiry", expiration.toString())
                     .addHeader("Linx-Api-Key", apiKey)
+                parseBaseUrlAndAuth(linxUrl).second?.let { builder.addHeader("Authorization", it) }
 
                 val request: Request = if (randomizeFilename) {
                     builder
@@ -234,11 +237,12 @@ class UploadActivity : AppCompatActivity() {
                     }
 
                     val builder = Request.Builder()
-                        .url("${linxUrl.trimEnd('/')}/upload/")
+                        .url("${parseBaseUrlAndAuth(linxUrl).first.trimEnd('/')}/upload/")
                         .addHeader("Accept", "application/json")
                         .addHeader("Linx-Delete-Key", deleteKey)
                         .addHeader("Linx-Expiry", expiration.toString())
                         .addHeader("Linx-Api-Key", apiKey)
+                    parseBaseUrlAndAuth(linxUrl).second?.let { builder.addHeader("Authorization", it) }
 
                     val request: Request = if (randomizeFilename) {
                         builder
@@ -387,6 +391,21 @@ class UploadActivity : AppCompatActivity() {
     private fun ensureNotificationPermission() {
         if (Build.VERSION.SDK_INT >= 33 && !hasNotificationPermission()) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
+        }
+    }
+
+    private fun parseBaseUrlAndAuth(url: String): Pair<String, String?> {
+        return try {
+            val uri = URI(url)
+            val userInfo = uri.userInfo
+            val cleaned = URI(uri.scheme, null, uri.host, uri.port, uri.rawPath, uri.rawQuery, uri.rawFragment).toString()
+            val auth = if (!userInfo.isNullOrEmpty()) {
+                val value = if (userInfo.contains(":")) userInfo else "$userInfo:"
+                "Basic " + Base64.encodeToString(value.toByteArray(Charsets.UTF_8), Base64.NO_WRAP)
+            } else null
+            Pair(cleaned, auth)
+        } catch (e: Exception) {
+            Pair(url, null)
         }
     }
 }

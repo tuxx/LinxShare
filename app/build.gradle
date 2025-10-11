@@ -19,17 +19,8 @@ android {
 		applicationId "com.kolktech.linxshare"
 		minSdk 23
 		targetSdk 35
-		// Allow CI/local overrides via env or -P properties
-		def vcEnv = System.getenv('VERSION_CODE')
-		def vcProp = project.findProperty('versionCode')
-		def resolvedVc = (vcEnv ?: vcProp)
-		versionCode (resolvedVc != null ? resolvedVc.toString().toInteger() : 4)
-
-		def vnEnvRaw = System.getenv('VERSION_NAME')
-		def vnProp = project.findProperty('versionName')
-		def vn = (vnEnvRaw ?: vnProp ?: '1.2').toString()
-		// Trim leading 'v' from tag names like 'v1.2.3'
-		versionName (vn.startsWith('v') ? vn.substring(1) : vn)
+		versionCode 20
+		versionName "1.4"
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 	}
 

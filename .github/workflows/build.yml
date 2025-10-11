@@ -51,6 +51,10 @@ jobs:
           VERSION_NAME: ${{ env.TAG_NAME }}
         run: ./gradlew --no-daemon assembleRelease bundleRelease
 
+      - name: Rename signed APK
+        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
+        run: mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/LinxShare-${{ env.TAG_NAME }}-signed.apk
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -60,17 +64,7 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            app/build/outputs/apk/release/app-release-unsigned.apk
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload signed APK (optional)
-        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
-        uses: softprops/action-gh-release@v2
-        with:
-          tag_name: ${{ env.TAG_NAME }}
-          files: |
-            app/build/outputs/apk/release/app-release.apk
+            app/build/outputs/apk/release/LinxShare-${{ env.TAG_NAME }}-signed.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 

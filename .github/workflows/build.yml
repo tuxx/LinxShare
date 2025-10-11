@@ -45,15 +45,13 @@ jobs:
           keyPassword=${ANDROID_KEY_PASSWORD}
           EOF
 
-      - name: Build unsigned APK and signed AAB
+      - name: Build signed APK and AAB
         env:
           VERSION_CODE: ${{ github.run_number }}
           VERSION_NAME: ${{ env.TAG_NAME }}
-        run: ./gradlew --no-daemon assembleRelease bundleRelease
-
-      - name: Rename signed APK
-        if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
-        run: mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/LinxShare-${{ env.TAG_NAME }}-signed.apk
+        run: |
+          ./gradlew --no-daemon assembleRelease bundleRelease
+          mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/LinxShare-${{ env.TAG_NAME }}-signed.apk
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

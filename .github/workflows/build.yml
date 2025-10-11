@@ -3,6 +3,12 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to use for release (e.g., v1.2.3)'
+        required: true
+        type: string
 
 jobs:
   build-release:
@@ -13,6 +19,7 @@ jobs:
       ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       PLAY_SERVICE_ACCOUNT_JSON: ${{ secrets.PLAY_SERVICE_ACCOUNT_JSON }}
+      TAG_NAME: ${{ github.ref_type == 'tag' && github.ref_name || inputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -40,14 +47,15 @@ jobs:
       - name: Build unsigned APK and signed AAB
         env:
           VERSION_CODE: ${{ github.run_number }}
-          VERSION_NAME: ${{ github.ref_name }}
+          VERSION_NAME: ${{ env.TAG_NAME }}
         run: ./gradlew --no-daemon assembleRelease bundleRelease
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: LinxShare ${{ github.ref_name }}
+          tag_name: ${{ env.TAG_NAME }}
+          name: LinxShare ${{ env.TAG_NAME }}
+          target_commitish: ${{ github.sha }}
           draft: false
           prerelease: false
           files: |
@@ -59,7 +67,7 @@ jobs:
         if: ${{ env.ANDROID_KEYSTORE_BASE64 != '' }}
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ env.TAG_NAME }}
           files: |
             app/build/outputs/apk/release/app-release.apk
         env:
@@ -72,6 +80,6 @@ jobs:
           serviceAccountJsonPlainText: ${{ env.PLAY_SERVICE_ACCOUNT_JSON }}
           packageName: com.kolktech.linxshare
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
-          releaseName: ${{ github.ref_name }}
+          releaseName: ${{ env.TAG_NAME }}
           track: production
           status: completed

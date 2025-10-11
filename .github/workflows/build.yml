@@ -46,9 +46,6 @@ jobs:
           EOF
 
       - name: Build signed APK and AAB
-        env:
-          VERSION_CODE: ${{ github.run_number }}
-          VERSION_NAME: ${{ env.TAG_NAME }}
         run: |
           ./gradlew --no-daemon assembleRelease bundleRelease
           mv app/build/outputs/apk/release/app-release.apk app/build/outputs/apk/release/LinxShare-${{ env.TAG_NAME }}-signed.apk

@@ -24,6 +24,12 @@ android {
 		testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 	}
 
+	// Exclude dependency metadata to improve reproducibility
+	dependenciesInfo {
+		includeInApk false
+		includeInBundle false
+	}
+
 	if (hasKeystore) {
 		signingConfigs {
 			release {

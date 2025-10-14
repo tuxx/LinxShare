@@ -7,6 +7,16 @@ plugins {
     id 'com.github.triplet.play' version '3.10.1' apply false
 }
 
+// Ensure archives are reproducible across environments
+subprojects {
+    tasks.withType(org.gradle.api.tasks.bundling.AbstractArchiveTask).configureEach {
+        // Do not keep original file timestamps inside jars/zips/apks
+        preserveFileTimestamps = false
+        // Use a stable file order when creating archives
+        reproducibleFileOrder = true
+    }
+}
+
 tasks.register('clean', Delete) {
     delete rootProject.buildDir
 }

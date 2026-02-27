@@ -16,6 +16,9 @@
                 app:defaultValue="true"
                 app:title="@string/randomize_filename"
                 app:key="randomize_filename"/>
+        <SwitchPreferenceCompat
+                app:title="@string/convert_heic_to_jpeg"
+                app:key="convert_heic_to_jpeg"/>
         <EditTextPreference
             app:title="@string/filename"
             app:key="filename"/>

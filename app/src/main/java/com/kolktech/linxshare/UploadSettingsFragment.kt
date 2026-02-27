@@ -45,11 +45,16 @@ class UploadSettingsFragment : PreferenceFragmentCompat() {
         get() = dataStore.getString("filename", "") ?: ""
         set(value) = dataStore.putString("filename", value)
 
+    var convertHeicToJpeg: Boolean
+        get() = dataStore.getBoolean("convert_heic_to_jpeg", false)
+        set(value) = dataStore.putBoolean("convert_heic_to_jpeg", value)
+
     override fun onSaveInstanceState(bundle: Bundle) {
         super.onSaveInstanceState(bundle)
         bundle.putString("delete_key", deleteKey)
         bundle.putInt("expiration", expiration)
         bundle.putBoolean("randomize_filename", randomizeFilename)
+        bundle.putBoolean("convert_heic_to_jpeg", convertHeicToJpeg)
         bundle.putString("filename", filename)
     }
 
@@ -60,11 +65,13 @@ class UploadSettingsFragment : PreferenceFragmentCompat() {
         deleteKey = sharedPreferences?.getString("delete_key", "") ?: ""
         expiration = (sharedPreferences?.getString("expiration", "0") ?: "0").toInt()
         randomizeFilename = sharedPreferences?.getBoolean("randomize_filename", true) ?: true
+        convertHeicToJpeg = sharedPreferences?.getBoolean("convert_heic_to_jpeg", false) ?: false
 
         if (savedInstanceState != null) {
             deleteKey = savedInstanceState.getString("delete_key", deleteKey)
             expiration = savedInstanceState.getInt("expiration", expiration)
             randomizeFilename = savedInstanceState.getBoolean("randomize_filename", randomizeFilename)
+            convertHeicToJpeg = savedInstanceState.getBoolean("convert_heic_to_jpeg", convertHeicToJpeg)
             filename = savedInstanceState.getString("filename", filename)
         }
 
@@ -93,6 +100,11 @@ class UploadSettingsFragment : PreferenceFragmentCompat() {
         findPreference<SwitchPreferenceCompat>("randomize_filename")?.let {
             it.preferenceDataStore = dataStore
             it.isChecked = randomizeFilename
+        }
+
+        findPreference<SwitchPreferenceCompat>("convert_heic_to_jpeg")?.let {
+            it.preferenceDataStore = dataStore
+            it.isChecked = convertHeicToJpeg
         }
 
         findPreference<EditTextPreference>("filename")?.let {

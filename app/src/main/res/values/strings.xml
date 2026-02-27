@@ -13,6 +13,7 @@
     <string name="upload">Upload</string>
     <string name="cancel">Cancel</string>
     <string name="randomize_filename">Randomize filename</string>
+    <string name="convert_heic_to_jpeg">Convert HEIC to JPEG</string>
     <string name="filename">Filename</string>
     <string name="no_api_key_set">No API key is set</string>
     <string name="api_key_set">An API key is set</string>

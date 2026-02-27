@@ -1,9 +1,9 @@
 package com.kolktech.linxshare
 
+import android.annotation.SuppressLint
 import android.content.*
 import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import android.util.Log
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -17,6 +17,7 @@ import androidx.core.app.ActivityCompat
 import android.graphics.BitmapFactory
 import android.util.Base64
 import java.net.URI
+import java.io.ByteArrayOutputStream
 import android.view.Menu
 import android.view.MenuItem
 import android.webkit.MimeTypeMap
@@ -30,6 +31,8 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 import okio.BufferedSink
 import okio.source
 import kotlin.concurrent.thread
@@ -107,6 +110,7 @@ class UploadActivity : AppCompatActivity() {
             val expiration = uploadSettings.expiration
             val randomizeFilename = uploadSettings.randomizeFilename
             val filename = uploadSettings.filename
+            val convertHeicToJpeg = uploadSettings.convertHeicToJpeg
 
             progressOverlay.visibility = View.VISIBLE
 
@@ -118,7 +122,8 @@ class UploadActivity : AppCompatActivity() {
                     apiKey,
                     expiration,
                     randomizeFilename,
-                    filename
+                    filename,
+                    convertHeicToJpeg
                 )
             } else {
                 handleSendImage(
@@ -128,7 +133,8 @@ class UploadActivity : AppCompatActivity() {
                     apiKey,
                     expiration,
                     randomizeFilename,
-                    filename
+                    filename,
+                    convertHeicToJpeg
                 )
             }
         }
@@ -142,25 +148,15 @@ class UploadActivity : AppCompatActivity() {
         apiKey: String,
         expiration: Int,
         randomizeFilename: Boolean,
-        filename: String
+        filename: String,
+        convertHeicToJpeg: Boolean
     ) {
         IntentCompat.getParcelableExtra(intent, Intent.EXTRA_STREAM, Uri::class.java)?.let { uri ->
             thread(start = true) {
-                val body = object : RequestBody() {
-                    override fun contentType(): MediaType? {
-                        return intent.type?.toMediaType()
-                    }
-
-                    override fun contentLength(): Long {
-                        return -1
-                    }
-
-                    override fun writeTo(sink: BufferedSink) {
-                        contentResolver.openInputStream(uri)?.source()?.use {
-                            sink.writeAll(it)
-                        }
-                    }
-                }
+                val sourceMimeType = contentResolver.getType(uri) ?: intent.type
+                val body = createRequestBody(uri, sourceMimeType, convertHeicToJpeg)
+                val convertedToJpeg = shouldConvertHeicToJpeg(uri, sourceMimeType, convertHeicToJpeg) &&
+                    body.contentType()?.toString() == "image/jpeg"
 
                 val builder = Request.Builder()
                     .url("${parseBaseUrlAndAuth(linxUrl).first.trimEnd('/')}/upload/")
@@ -176,9 +172,10 @@ class UploadActivity : AppCompatActivity() {
                         .put(body)
                         .build()
                 } else {
+                    val finalFilename = if (convertedToJpeg) withJpegExtension(filename) else filename
                     val formBody = MultipartBody.Builder()
                         .setType(MultipartBody.FORM)
-                        .addFormDataPart("file", filename, body)
+                        .addFormDataPart("file", finalFilename, body)
                         .build()
                     builder
                         .post(formBody)
@@ -205,7 +202,8 @@ class UploadActivity : AppCompatActivity() {
         apiKey: String,
         expiration: Int,
         randomizeFilename: Boolean,
-        filename: String
+        filename: String,
+        convertHeicToJpeg: Boolean
     ) {
         val uris: List<Uri> = IntentCompat.getParcelableArrayListExtra(intent, Intent.EXTRA_STREAM, Uri::class.java) ?: emptyList()
         if (uris.isEmpty()) {
@@ -220,21 +218,10 @@ class UploadActivity : AppCompatActivity() {
 
             uris.forEach { uri ->
                 thread(start = true) {
-                    val body = object : RequestBody() {
-                        override fun contentType(): MediaType? {
-                            return intent.type?.toMediaType()
-                        }
-
-                        override fun contentLength(): Long {
-                            return -1
-                        }
-
-                        override fun writeTo(sink: BufferedSink) {
-                            contentResolver.openInputStream(uri)?.source()?.use {
-                                sink.writeAll(it)
-                            }
-                        }
-                    }
+                    val sourceMimeType = contentResolver.getType(uri) ?: intent.type
+                    val body = createRequestBody(uri, sourceMimeType, convertHeicToJpeg)
+                    val convertedToJpeg = shouldConvertHeicToJpeg(uri, sourceMimeType, convertHeicToJpeg) &&
+                        body.contentType()?.toString() == "image/jpeg"
 
                     val builder = Request.Builder()
                         .url("${parseBaseUrlAndAuth(linxUrl).first.trimEnd('/')}/upload/")
@@ -251,13 +238,14 @@ class UploadActivity : AppCompatActivity() {
                             .build()
                     } else {
                         val name: String = if (uris.size == 1 && filename.isNotEmpty()) {
-                            filename
+                            if (convertedToJpeg) withJpegExtension(filename) else filename
                         } else {
                             val last = uri.lastPathSegment ?: "file"
-                            if (last.contains('.')) last else {
+                            val resolved = if (last.contains('.')) last else {
                                 val ext = MimeTypeMap.getSingleton().getExtensionFromMimeType(intent.type)
                                 if (!ext.isNullOrEmpty()) "$last.$ext" else last
                             }
+                            if (convertedToJpeg) withJpegExtension(resolved) else resolved
                         }
                         val formBody = MultipartBody.Builder()
                             .setType(MultipartBody.FORM)
@@ -302,6 +290,66 @@ class UploadActivity : AppCompatActivity() {
             } else {
                 handleFailure()
             }
+        }
+    }
+
+    private fun createRequestBody(uri: Uri, sourceMimeType: String?, convertHeicToJpeg: Boolean): RequestBody {
+        if (shouldConvertHeicToJpeg(uri, sourceMimeType, convertHeicToJpeg)) {
+            convertUriToJpegBytes(uri)?.let { bytes ->
+                return bytes.toRequestBody("image/jpeg".toMediaType())
+            }
+        }
+
+        return object : RequestBody() {
+            override fun contentType(): MediaType? {
+                return sourceMimeType?.toMediaTypeOrNull()
+            }
+
+            override fun contentLength(): Long {
+                return -1
+            }
+
+            override fun writeTo(sink: BufferedSink) {
+                contentResolver.openInputStream(uri)?.source()?.use {
+                    sink.writeAll(it)
+                }
+            }
+        }
+    }
+
+    private fun shouldConvertHeicToJpeg(uri: Uri, sourceMimeType: String?, convertHeicToJpeg: Boolean): Boolean {
+        if (!convertHeicToJpeg) return false
+
+        val mime = sourceMimeType?.lowercase()
+        if (mime == "image/heic" || mime == "image/heif" || mime == "image/heic-sequence" || mime == "image/heif-sequence") {
+            return true
+        }
+
+        val path = uri.lastPathSegment?.lowercase() ?: return false
+        return path.endsWith(".heic") || path.endsWith(".heif")
+    }
+
+    private fun convertUriToJpegBytes(uri: Uri): ByteArray? {
+        return try {
+            contentResolver.openInputStream(uri)?.use { input ->
+                val bitmap = BitmapFactory.decodeStream(input) ?: return null
+                val output = ByteArrayOutputStream()
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 95, output)
+                output.toByteArray()
+            }
+        } catch (e: Exception) {
+            Log.w("UploadActivity", "Failed to convert HEIC/HEIF to JPEG for $uri", e)
+            null
+        }
+    }
+
+    private fun withJpegExtension(name: String): String {
+        if (name.isEmpty()) return "upload.jpg"
+        val dotIndex = name.lastIndexOf('.')
+        return if (dotIndex <= 0) {
+            "$name.jpg"
+        } else {
+            "${name.substring(0, dotIndex)}.jpg"
         }
     }
 
@@ -360,6 +408,7 @@ class UploadActivity : AppCompatActivity() {
 
     private var nextNotificationId: Int = 1000
 
+    @SuppressLint("MissingPermission")
     private fun showCopyNotification(url: String) {
         if (!hasNotificationPermission()) return
         ensureChannel()

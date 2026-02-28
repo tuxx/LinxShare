@@ -19,4 +19,12 @@
     <string name="api_key_set">An API key is set</string>
     <string name="no_delete_key_set">No delete key is set</string>
     <string name="delete_key_set">A delete key is set</string>
+    <string name="save">Save</string>
+    <string name="tap_to_set_filename">Tap to set filename</string>
+    <string name="upload_failed">Failed to upload to linx-server, check settings!</string>
+    <string name="copied_to_clipboard">Copied %1$s to clipboard</string>
+    <string name="clipboard_label">linx url</string>
+    <string name="upload_complete">Upload complete</string>
+    <string name="linx_uploads_channel_name">Linx uploads</string>
+    <string name="never">never</string>
 </resources>

@@ -38,15 +38,8 @@ import androidx.compose.ui.unit.dp
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainSettingsScreen(
-    linxUrl: String,
-    apiKey: String,
-    deleteKey: String,
+    settings: SettingsData,
     expirationLabel: String,
-    expirationValue: String,
-    randomizeFilename: Boolean,
-    convertHeicToJpeg: Boolean,
-    notifSingle: Boolean,
-    notifMulti: Boolean,
     expirationOptions: List<Pair<String, String>>,
     onLinxUrlChanged: (String) -> Unit,
     onApiKeyChanged: (String) -> Unit,
@@ -74,40 +67,40 @@ fun MainSettingsScreen(
         LazyColumn(modifier = Modifier.fillMaxSize().padding(padding)) {
             item {
                 SectionHeader(stringResource(R.string.server_settings))
-                ClickableSettingRow(stringResource(R.string.linx_url), linxUrl, { editField = "linx_url" })
+                ClickableSettingRow(stringResource(R.string.linx_url), settings.linxUrl, { editField = "linx_url" })
                 ClickableSettingRow(
                     stringResource(R.string.api_key),
-                    if (apiKey.isBlank()) stringResource(R.string.no_api_key_set) else stringResource(R.string.api_key_set),
+                    if (settings.apiKey.isBlank()) stringResource(R.string.no_api_key_set) else stringResource(R.string.api_key_set),
                     { editField = "api_key" }
                 )
 
                 SectionHeader(stringResource(R.string.default_upload_settings))
                 ClickableSettingRow(
                     stringResource(R.string.delete_key),
-                    if (deleteKey.isBlank()) stringResource(R.string.no_delete_key_set) else stringResource(R.string.delete_key_set),
+                    if (settings.deleteKey.isBlank()) stringResource(R.string.no_delete_key_set) else stringResource(R.string.delete_key_set),
                     { editField = "delete_key" }
                 )
                 ClickableSettingRow(stringResource(R.string.expiration), expirationLabel, { openExpiration = true })
-                SwitchSettingRow(stringResource(R.string.randomize_filename), randomizeFilename, onRandomizeFilenameChanged)
-                SwitchSettingRow(stringResource(R.string.convert_heic_to_jpeg), convertHeicToJpeg, onConvertHeicToJpegChanged)
+                SwitchSettingRow(stringResource(R.string.randomize_filename), settings.randomizeFilename, onRandomizeFilenameChanged)
+                SwitchSettingRow(stringResource(R.string.convert_heic_to_jpeg), settings.convertHeicToJpeg, onConvertHeicToJpegChanged)
 
                 SectionHeader(stringResource(R.string.notification_settings))
-                SwitchSettingRow(stringResource(R.string.notif_single), notifSingle, onNotifSingleChanged)
-                SwitchSettingRow(stringResource(R.string.notif_multi), notifMulti, onNotifMultiChanged)
+                SwitchSettingRow(stringResource(R.string.notif_single), settings.notifSingle, onNotifSingleChanged)
+                SwitchSettingRow(stringResource(R.string.notif_multi), settings.notifMulti, onNotifMultiChanged)
             }
         }
     }
 
     when (editField) {
-        "linx_url" -> TextInputDialog(stringResource(R.string.linx_url), linxUrl, { editField = null }) {
+        "linx_url" -> TextInputDialog(stringResource(R.string.linx_url), settings.linxUrl, { editField = null }) {
             onLinxUrlChanged(it)
             editField = null
         }
-        "api_key" -> TextInputDialog(stringResource(R.string.api_key), apiKey, { editField = null }) {
+        "api_key" -> TextInputDialog(stringResource(R.string.api_key), settings.apiKey, { editField = null }) {
             onApiKeyChanged(it)
             editField = null
         }
-        "delete_key" -> TextInputDialog(stringResource(R.string.delete_key), deleteKey, { editField = null }) {
+        "delete_key" -> TextInputDialog(stringResource(R.string.delete_key), settings.deleteKey, { editField = null }) {
             onDeleteKeyChanged(it)
             editField = null
         }
@@ -117,7 +110,7 @@ fun MainSettingsScreen(
         ChoiceDialog(
             title = stringResource(R.string.expiration),
             options = expirationOptions,
-            selectedValue = expirationValue,
+            selectedValue = settings.expirationValue,
             onDismiss = { openExpiration = false },
             onSelected = {
                 onExpirationChanged(it)

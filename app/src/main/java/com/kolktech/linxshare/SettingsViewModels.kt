@@ -13,36 +13,14 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-data class MainSettingsUiState(
-    val linxUrl: String = "https://",
-    val apiKey: String = "",
-    val deleteKey: String = "",
-    val expirationValue: String = "0",
-    val randomizeFilename: Boolean = true,
-    val convertHeicToJpeg: Boolean = false,
-    val notifSingle: Boolean = false,
-    val notifMulti: Boolean = true
-)
-
 class MainSettingsViewModel(application: Application) : AndroidViewModel(application) {
     private val repository = SettingsRepository(application)
-    private val _uiState = MutableStateFlow(MainSettingsUiState())
-    val uiState: StateFlow<MainSettingsUiState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(SettingsData())
+    val uiState: StateFlow<SettingsData> = _uiState.asStateFlow()
 
     init {
         viewModelScope.launch {
-            repository.settingsFlow.collect { settings ->
-                _uiState.value = MainSettingsUiState(
-                    linxUrl = settings.linxUrl,
-                    apiKey = settings.apiKey,
-                    deleteKey = settings.deleteKey,
-                    expirationValue = settings.expirationValue,
-                    randomizeFilename = settings.randomizeFilename,
-                    convertHeicToJpeg = settings.convertHeicToJpeg,
-                    notifSingle = settings.notifSingle,
-                    notifMulti = settings.notifMulti
-                )
-            }
+            repository.settingsFlow.collect { settings -> _uiState.value = settings }
         }
     }
 

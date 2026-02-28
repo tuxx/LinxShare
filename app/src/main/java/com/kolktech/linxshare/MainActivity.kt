@@ -22,15 +22,8 @@ class MainActivity : ComponentActivity() {
             val state by viewModel.uiState.collectAsStateWithLifecycle()
 
             MainSettingsScreen(
-                linxUrl = state.linxUrl,
-                apiKey = state.apiKey,
-                deleteKey = state.deleteKey,
+                settings = state,
                 expirationLabel = expirationOptions.firstOrNull { it.first == state.expirationValue }?.second ?: getString(R.string.never),
-                expirationValue = state.expirationValue,
-                randomizeFilename = state.randomizeFilename,
-                convertHeicToJpeg = state.convertHeicToJpeg,
-                notifSingle = state.notifSingle,
-                notifMulti = state.notifMulti,
                 expirationOptions = expirationOptions,
                 onLinxUrlChanged = viewModel::setLinxUrl,
                 onApiKeyChanged = viewModel::setApiKey,
